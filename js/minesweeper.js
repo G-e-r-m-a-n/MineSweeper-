@@ -5,8 +5,8 @@ const tilesImage = new Image();
 tilesImage.src = "img/tiles.jpg"
 
 var C_S = 32;
-var M = 5;
-var N = 5;
+var M = 10;
+var N = 10;
 
 var mines = [];
 var grid = [];
