@@ -225,16 +225,16 @@ function main() {
 	setTimeout(init, 200);
 }
 
-canvas.addEventListener("click", function temp(event) {
-	if(event.ctrlKey) {
+canvas.addEventListener("mousedown", function temp(event) {
+	if((event.ctrlKey)&&(event.which == 1) || (event.which == 3)) {
 		flag(event);
-	} else {
+	} else if (event.which == 1){
 		check(event);
 	}
 })
 
-canvas.addEventListener("contextmenu", function temp(event) {
-	flag(event);
-})
+//canvas.addEventListener("contextmenu", function temp(event) {
+//	flag(event);
+//})
 
 main()
