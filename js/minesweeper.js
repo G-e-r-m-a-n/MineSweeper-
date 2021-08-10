@@ -11,7 +11,8 @@ var N = 10;
 var mines = [];
 var grid = [];
 var grid_open = [];
-var close_count = 0;
+var close_cells = 0;
+var first_click = true;
 
 function gameOver() {
 	for (var i = 0; i < M; i++) {
@@ -22,17 +23,16 @@ function gameOver() {
 
 	ctx.fillStyle = "red"
 	ctx.font = "40px Arial";
-	ctx.fillText("GAME OVER", 41, 170);	
+	ctx.fillText("GAME OVER", (N-7.5)*C_S/2, M*C_S/2);	
 }
 
 function youWin() {
 	ctx.fillStyle = "red"
 	ctx.font = "40px Arial";
-	ctx.fillText("You Win", 41, 170);
+	ctx.fillText("You Win", (N-4.4)*C_S/2, M*C_S/2);
 }
 
-function init() {
-
+function putMines() {
 	for (var i = 0; i < M; i++) {
 		grid.push([]);
 		grid_open.push([]);
@@ -44,9 +44,10 @@ function init() {
 				grid[i].push(0);
 			}
 			grid_open[i].push(0);
-			close_count++;
+			close_cells++;
 		}
 	}
+//	grid[click_i][click_j] = 0;
 
 	for(var k = 0; k < mines.length; k++) {
 		if(mines[k].i != 0) {
@@ -54,7 +55,7 @@ function init() {
 				if(grid[mines[k].i - 1][mines[k].j - 1] != 9) grid[mines[k].i - 1][mines[k].j - 1] += 1;
 			}
 			if(grid[mines[k].i - 1][mines[k].j] != 9) grid[mines[k].i - 1][mines[k].j] += 1;
-			if(mines[k].j != 9) {
+			if(mines[k].j != N-1) {
 				if(grid[mines[k].i - 1][mines[k].j + 1] != 9) grid[mines[k].i - 1][mines[k].j + 1] += 1;
 			}
 		}
@@ -62,32 +63,35 @@ function init() {
 		if(mines[k].j != 0) {
 			if(grid[mines[k].i][mines[k].j - 1] != 9) grid[mines[k].i][mines[k].j - 1] += 1;
 		}
-		if(mines[k].j != 9) {
+		if(mines[k].j != N-1) {
 			if(grid[mines[k].i][mines[k].j + 1] != 9) grid[mines[k].i][mines[k].j + 1] += 1;
 		}
 
-		if(mines[k].i != 9) {
+		if(mines[k].i != M-1) {
 			if(mines[k].j != 0) {
 				if(grid[mines[k].i + 1][mines[k].j - 1] != 9) grid[mines[k].i + 1][mines[k].j - 1] += 1;
 			}
 			if(grid[mines[k].i + 1][mines[k].j] != 9) grid[mines[k].i + 1][mines[k].j] += 1;
-			if(mines[k].j != 9) {
+			if(mines[k].j != N-1) {
 				if(grid[mines[k].i + 1][mines[k].j + 1] != 9) grid[mines[k].i + 1][mines[k].j + 1] += 1;
 			}
 		}
 	}
+}
 
-
+function init() {
 	for (var i = 0; i < M; i++) {
 		for (var j = 0; j < N; j++) {
 			ctx.drawImage(tilesImage, 10*C_S, 0, C_S, C_S, j*C_S, i*C_S, C_S, C_S);
 		}
 	}
+	putMines();
 }
 
 function zero(i, j) {
-	ctx.drawImage(tilesImage, C_S*grid[i][j], 0, C_S, C_S, i*C_S, j*C_S, C_S, C_S);
+	ctx.drawImage(tilesImage, C_S*grid[i][j], 0, C_S, C_S, j*C_S, i*C_S, C_S, C_S);
 	grid_open[i][j] = 1;
+	close_cells--;
 
 	if(i != 0) {
 		if(j != 0) {
@@ -97,6 +101,7 @@ function zero(i, j) {
 				} else {
 					ctx.drawImage(tilesImage, C_S*grid[i-1][j-1], 0, C_S, C_S, (j-1)*C_S, (i-1)*C_S, C_S, C_S);
 					grid_open[i-1][j-1] = 1;
+					close_cells--;
 				}
 			}
 		}
@@ -106,15 +111,17 @@ function zero(i, j) {
 			} else {
 				ctx.drawImage(tilesImage, C_S*grid[i-1][j], 0, C_S, C_S, j*C_S, (i-1)*C_S, C_S, C_S);
 				grid_open[i-1][j] = 1;
+				close_cells--;
 			}
 		}
-		if(j != 9) {
+		if(j != N-1) {
 			if (grid_open[i-1][j+1] == 0) {
 				if (grid[i-1][j+1] == 0) {
 					zero(i-1, j+1);
 				} else {
 					ctx.drawImage(tilesImage, C_S*grid[i-1][j+1], 0, C_S, C_S, (j+1)*C_S, (i-1)*C_S, C_S, C_S);
 					grid_open[i-1][j+1] = 1;
+					close_cells--;
 				}
 			}
 		}
@@ -127,21 +134,23 @@ function zero(i, j) {
 			} else {
 				ctx.drawImage(tilesImage, C_S*grid[i][j-1], 0, C_S, C_S, (j-1)*C_S, i*C_S, C_S, C_S);
 				grid_open[i][j-1] = 1;
+				close_cells--;
 			}
 		}
 	}
-	if(j != 9) {
+	if(j != N-1) {
 		if (grid_open[i][j+1] == 0) {
 			if (grid[i][j+1] == 0) {
 				zero(i, j+1);
 			} else {
 				ctx.drawImage(tilesImage, C_S*grid[i][j+1], 0, C_S, C_S, (j+1)*C_S, i*C_S, C_S, C_S);
 				grid_open[i][j+1] = 1;
+				close_cells--;
 			}
 		}
 	}
 
-	if(i != 9) {
+	if(i != M-1) {
 		if(j != 0) {
 			if (grid_open[i+1][j-1] == 0) {
 				if (grid[i+1][j-1] == 0) {
@@ -149,6 +158,7 @@ function zero(i, j) {
 				} else {
 					ctx.drawImage(tilesImage, C_S*grid[i+1][j-1], 0, C_S, C_S, (j-1)*C_S, (i+1)*C_S, C_S, C_S);
 					grid_open[i+1][j-1] = 1;
+					close_cells--;
 				}
 			}
 		}
@@ -156,17 +166,19 @@ function zero(i, j) {
 			if (grid[i+1][j] == 0) {
 				zero(i+1, j);
 			} else {
-				ctx.drawImage(tilesImage, C_S*grid[i+1][j], 0, C_S, C_S, j*C_S, (i-1)*C_S, C_S, C_S);
+				ctx.drawImage(tilesImage, C_S*grid[i+1][j], 0, C_S, C_S, j*C_S, (i+1)*C_S, C_S, C_S);
 				grid_open[i+1][j] = 1;
+				close_cells--;
 			}
 		}
-		if(j != 9) {
+		if(j != N-1) {
 			if (grid_open[i+1][j+1] == 0) {
 				if (grid[i+1][j+1] == 0) {
 					zero(i+1, j+1);
 				} else {
 					ctx.drawImage(tilesImage, C_S*grid[i+1][j+1], 0, C_S, C_S, (j+1)*C_S, (i+1)*C_S, C_S, C_S);
 					grid_open[i+1][j+1] = 1;
+					close_cells--;
 				}
 			}
 		}
@@ -181,13 +193,14 @@ function check() {
 
 	if(grid_open[newY][newX] == 0) {
 		if(grid[newY][newX] == 9) gameOver();
-//		if(grid[newY][newX] == 0) zero(newY, newX);
+		else if(grid[newY][newX] == 0) zero(newY, newX);
+		else {
+			ctx.drawImage(tilesImage, C_S*grid[newY][newX], 0, C_S, C_S, newX*C_S, newY*C_S, C_S, C_S);
+			grid_open[newY][newX] = 1;
+			close_cells--;
+		}
 
-		ctx.drawImage(tilesImage, C_S*grid[newY][newX], 0, C_S, C_S, newX*C_S, newY*C_S, C_S, C_S);
-		grid_open[newY][newX] = 1;
-		close_count--;
-
-		if(close_count == mines.length) {
+		if(close_cells == mines.length) {
 			youWin();
 		}
 	}
@@ -213,7 +226,11 @@ function main() {
 }
 
 canvas.addEventListener("click", function temp(event) {
-	check(event);
+	if(event.ctrlKey) {
+		flag(event);
+	} else {
+		check(event);
+	}
 })
 
 canvas.addEventListener("contextmenu", function temp(event) {
