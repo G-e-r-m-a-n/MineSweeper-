@@ -27,17 +27,22 @@ function gameOver() {
 }
 
 function youWin() {
+	for (var i = 0; i < M; i++) {
+		for (var j = 0; j < N; j++) {
+			ctx.drawImage(tilesImage, C_S*grid[i][j], 0, C_S, C_S, j*C_S, i*C_S, C_S, C_S);
+		}
+	}
 	ctx.fillStyle = "red"
 	ctx.font = "40px Arial";
 	ctx.fillText("You Win", (N-4.4)*C_S/2, M*C_S/2);
 }
 
-function putMines() {
+function putMines(click_i, click_j) {
 	for (var i = 0; i < M; i++) {
 		grid.push([]);
 		grid_open.push([]);
 		for (var j = 0; j < N; j++) {
-			if (Math.random()*100 < 10) {
+			if ((Math.random()*100 < 10) && ((i != click_i) || (j != click_j))){
 				grid[i].push(9);
 				mines.push({i: i,j: j});
 			} else {
@@ -47,7 +52,6 @@ function putMines() {
 			close_cells++;
 		}
 	}
-//	grid[click_i][click_j] = 0;
 
 	for(var k = 0; k < mines.length; k++) {
 		if(mines[k].i != 0) {
@@ -85,7 +89,6 @@ function init() {
 			ctx.drawImage(tilesImage, 10*C_S, 0, C_S, C_S, j*C_S, i*C_S, C_S, C_S);
 		}
 	}
-	putMines();
 }
 
 function zero(i, j) {
@@ -186,10 +189,10 @@ function zero(i, j) {
 
 }
 
-function check() {
-	var rect = canvas.getBoundingClientRect();
-	var newX = Math.floor((event.clientX - rect.left) / C_S);
-	var newY = Math.floor((event.clientY - rect.top) / C_S);
+function check(newY, newX) {
+//	var rect = canvas.getBoundingClientRect();
+//	var newX = Math.floor((event.clientX - rect.left) / C_S);
+//	var newY = Math.floor((event.clientY - rect.top) / C_S);
 
 	if(grid_open[newY][newX] == 0) {
 		if(grid[newY][newX] == 9) gameOver();
@@ -225,11 +228,19 @@ function main() {
 	setTimeout(init, 200);
 }
 
-canvas.addEventListener("mousedown", function temp(event) {
+canvas.addEventListener("mouseup", function temp(event) {
+	var rect = canvas.getBoundingClientRect();
+	var newX = Math.floor((event.clientX - rect.left) / C_S);
+	var newY = Math.floor((event.clientY - rect.top) / C_S);
+
 	if((event.ctrlKey)&&(event.which == 1) || (event.which == 3)) {
 		flag(event);
 	} else if (event.which == 1){
-		check(event);
+		if (first_click) {
+			putMines(newY, newX);
+			first_click = false;
+		}
+		check(newY, newX);
 	}
 })
 
